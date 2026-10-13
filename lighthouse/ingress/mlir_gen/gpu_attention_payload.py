@@ -154,7 +154,9 @@ def generate_gpu_attention_payload(
             row_map = ir.AffineMap.get(3, 0, [d0, d1])
             row_shape_3d = (batch_dim, n_ctx)
 
-            # m = max_k s
+            # m = max_k s. Use maxnumf, as linalg.softmax does: maximumf must
+            # propagate NaN and order signed zeros, which costs several extra
+            # instructions per max on SPIR-V targets.
             neg_inf = arith.constant(compute_type, float("-inf"))
             m_init = linalg.fill(
                 neg_inf, outs=[tensor.empty(row_shape_3d, compute_type)]
@@ -164,7 +166,7 @@ def generate_gpu_attention_payload(
                 m_init,
                 [elementwise_map, row_map],
                 ["parallel", "parallel", "reduction"],
-                lambda s, acc: arith.maximumf(s, acc),
+                lambda s, acc: arith.maxnumf(s, acc),
             )
 
             # Keep the subtract and exponential separate here. The schedule
