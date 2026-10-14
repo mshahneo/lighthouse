@@ -444,7 +444,8 @@ class Builder:
             [scores], [max_acc], [score_map, row_map], [parallel] * 3 + [reduction]
         )
         def row_max(score, acc):
-            return arith.MaximumFOp(score, acc)
+            # maxnumf, as linalg.softmax does; see gpu_attention_payload.py.
+            return arith.MaxNumFOp(score, acc)
 
         @linalg.generic(
             [scores, row_max],

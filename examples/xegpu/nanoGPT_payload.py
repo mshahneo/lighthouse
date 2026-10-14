@@ -270,7 +270,8 @@ class Builder:
             [scaled], [max_acc], [ew_map, row_map], [parallel, parallel, reduction]
         )
         def row_max(s, acc):
-            return arith.MaximumFOp(s, acc)
+            # maxnumf, as linalg.softmax does; see gpu_attention_payload.py.
+            return arith.MaxNumFOp(s, acc)
 
         # p = exp(s - m), read by both the row sum and the @V contraction.
         @linalg.generic(
